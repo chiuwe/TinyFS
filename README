@@ -1,0 +1,29 @@
+Steven Chiu, Sterling Tarng
+
+Our Implementation:
+
+Our TinyFS needs minimum of 3 blocks to run, 768 bytes. When making our filesystem, our superblock hold its block type and magic number as well as the size of the filesystem, free list pointer, free list count, and inode pointer.
+tfs_mkfs() also sets up the inode pointer to point to the root directory.
+
+The root directory, which is an inode block contains block type, magic number, and pointer to next block if there is one. Inode block also store up to 25 entries per block. Each entry has 1 byte to point the the extent block or inode block if it is a directory. The second byte tell read write properties or if it is a directory. The remaining 8 bytes are for the filename. Each directory has its own inode block whether its parent directory is full or not. 
+
+Extent block has a pointer to its EOF (TEOF). If TEOF is NULL, it implies that there is a next block.
+
+When files and directories are deleted, inode blocks are updated so that all entries are contiguous. The last entry is pulled to fill in the deleted entries spot, freeing inode blocks if all entries fit on one block.
+
+Additional Functionality:
+
+   1. Hierarchical directories
+      Directories are treated as just another inode block but with a name. All functions that can take a path, supports directories, such as openFile, and rename. removeAll() deletes open files, on the next access of an open file descriptor user will get an invalid file descriptor error.
+      
+   2. Directory listing and renaming
+      Rename takes a valid path and file name and renames the file if it has permissions to do so. readdir() recursively prints out all directories and files within a directory. Directories will be printed in red. 
+      
+   3. Read-only and writeByte support
+      The second byte for every inode entry in the inode block indicates if it is a read-only (0), read-write (1), or directory file (2).
+
+Usage Limitations or Bugs:
+
+tfs_writeFile() only writes to the end of the file's content.
+Must unmount properly to prevent memory leaks.
+Our TinyFS doesn't conserve space when writing NULLs across blocks and writing bytes at the end.
